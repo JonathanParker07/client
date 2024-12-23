@@ -19,16 +19,27 @@ export const api = {
     // Auth endpoints
     login: async (credentials) => {
         try {
-            console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
+            console.log('Login attempt:', {
+                url: `${API_BASE_URL}/auth/login`,
+                credentials: { ...credentials, password: '[REDACTED]' }
+            });
+            
             const response = await axiosInstance.post('/auth/login', credentials);
-            console.log('Login response:', response);
+            
+            console.log('Login successful:', {
+                status: response.status,
+                data: { ...response.data, token: '[REDACTED]' }
+            });
+            
             return response.data;
         } catch (error) {
-            console.error('Login error details:', {
+            console.error('Login failed:', {
                 message: error.message,
                 response: error.response?.data,
                 status: error.response?.status,
-                url: error.config?.url
+                url: error.config?.url,
+                method: error.config?.method,
+                headers: error.config?.headers
             });
             throw error;
         }

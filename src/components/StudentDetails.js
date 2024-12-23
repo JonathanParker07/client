@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Button,
@@ -15,11 +15,7 @@ function StudentDetails() {
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
 
-  useEffect(() => {
-    loadStudent();
-  }, [id]);
-
-  const loadStudent = async () => {
+  const loadStudent = useCallback(async () => {
     try {
       const data = await api.getStudentById(id);
       setStudent(data);
@@ -27,7 +23,11 @@ function StudentDetails() {
       console.error('Error loading student:', error);
       navigate('/');
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    loadStudent();
+  }, [loadStudent]);
 
   if (!student) {
     return null;

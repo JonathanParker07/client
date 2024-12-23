@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -29,20 +29,21 @@ function StudentForm() {
   });
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    if (id) {
-      loadStudent();
-    }
-  }, [id]);
-
-  const loadStudent = async () => {
+  const loadStudent = useCallback(async () => {
     try {
       const data = await api.getStudentById(id);
       setFormData(data);
     } catch (error) {
       console.error('Error loading student:', error);
+      navigate('/');
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (id) {
+      loadStudent();
+    }
+  }, [id, loadStudent]);
 
   const validateField = (name, value) => {
     let error = '';

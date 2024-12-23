@@ -28,7 +28,7 @@ function StudentList() {
 
   useEffect(() => {
     loadStudents();
-  }, []);
+  }, [filterStatus]); // Add filterStatus as dependency since it affects loadStudents
 
   const loadStudents = async () => {
     try {
