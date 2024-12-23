@@ -29,13 +29,19 @@ function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         try {
             const response = await api.login(formData);
             localStorage.setItem('token', response.token);
             localStorage.setItem('user', JSON.stringify(response.user));
             navigate('/');
         } catch (error) {
-            setError(error.response?.data?.message || 'Login failed');
+            console.error('Login error:', error);
+            setError(
+                error.response?.data?.message || 
+                error.message || 
+                'Login failed. Please check your credentials and try again.'
+            );
         }
     };
 
