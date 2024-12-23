@@ -23,6 +23,7 @@ import { api } from '../services/api';
 function StudentList() {
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // Add state for filter
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,7 +33,15 @@ function StudentList() {
   const loadStudents = async () => {
     try {
       const data = await api.getAllStudents();
-      setStudents(data);
+      // Apply filter to the data
+      const filteredData = filterStatus === 'all' 
+        ? data 
+        : data.filter(student => 
+            filterStatus === 'received' 
+              ? student.status === true || student.status === 'received'
+              : student.status === false || student.status === 'not received'
+          );
+      setStudents(filteredData);
     } catch (error) {
       console.error('Error loading students:', error);
     }
@@ -45,7 +54,15 @@ function StudentList() {
     try {
       if (query.trim()) {
         const data = await api.searchStudents(query);
-        setStudents(data);
+        // Apply filter to the data
+        const filteredData = filterStatus === 'all' 
+          ? data 
+          : data.filter(student => 
+              filterStatus === 'received' 
+                ? student.status === true || student.status === 'received'
+                : student.status === false || student.status === 'not received'
+            );
+        setStudents(filteredData);
       } else {
         loadStudents(); // Load all students if search is empty
       }
@@ -69,7 +86,7 @@ function StudentList() {
 
   return (
     <>
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
         <TextField
           fullWidth
           variant="outlined"
@@ -84,6 +101,35 @@ function StudentList() {
             ),
           }}
         />
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Chip
+            label="All"
+            color={filterStatus === 'all' ? 'primary' : 'default'}
+            onClick={() => {
+              setFilterStatus('all');
+              loadStudents();
+            }}
+            sx={{ cursor: 'pointer' }}
+          />
+          <Chip
+            label="Received"
+            color={filterStatus === 'received' ? 'primary' : 'default'}
+            onClick={() => {
+              setFilterStatus('received');
+              loadStudents();
+            }}
+            sx={{ cursor: 'pointer' }}
+          />
+          <Chip
+            label="Not Received"
+            color={filterStatus === 'not received' ? 'primary' : 'default'}
+            onClick={() => {
+              setFilterStatus('not received');
+              loadStudents();
+            }}
+            sx={{ cursor: 'pointer' }}
+          />
+        </Box>
       </Box>
       <TableContainer component={Paper}>
         <Table>
@@ -94,22 +140,48 @@ function StudentList() {
               <TableCell>Room Number</TableCell>
               <TableCell>Level</TableCell>
               <TableCell>Status</TableCell>
+              <TableCell>Created At</TableCell>
+              <TableCell>Last Updated</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {students.map((student) => (
               <TableRow key={student._id}>
-                <TableCell>{student.studentid}</TableCell>
+                <TableCell>{String(student.studentid).padStart(9, '0')}</TableCell>
                 <TableCell>{student.name}</TableCell>
-                <TableCell>{student.roomnum}</TableCell>
-                <TableCell>{student.level}</TableCell>
+                <TableCell>{String(student.roomnum).padStart(4, '0')}</TableCell>
+                <TableCell>Level {student.level}</TableCell>
                 <TableCell>
                   <Chip
-                    label={student.status ? 'Active' : 'Inactive'}
-                    color={student.status ? 'success' : 'error'}
+                    label={typeof student.status === 'boolean' 
+                      ? (student.status ? 'received' : 'not received') 
+                      : student.status}
+                    color={student.status === 'received' || student.status === true ? 'success' : 'error'}
                     size="small"
                   />
+                </TableCell>
+                <TableCell>
+                  {student.createdAt 
+                    ? new Date(student.createdAt).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : 'Invalid Date'}
+                </TableCell>
+                <TableCell>
+                  {student.updatedAt && student.updatedAt !== student.createdAt
+                    ? new Date(student.updatedAt).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : '-'}
                 </TableCell>
                 <TableCell>
                   <IconButton
